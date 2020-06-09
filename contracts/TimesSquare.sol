@@ -33,12 +33,33 @@ contract TimesSquare {
         emit NewGame(now);
     }
 
-    /// @dev Commit approved ERC20 token
+
+    // ----------------------------------------------------------------------------
+    /// @dev Getter functions
+    // ----------------------------------------------------------------------------
+
+    function prizeValue() public view returns (uint256) {
+        uint256 amount = paymentCurrency.balanceOf(address(this));
+        return amount * 90 / 100;
+    }
+
+    function timeRemaining() public view returns (uint256) {
+        if (now <= expiryTime) {
+            return expiryTime - now;
+        }
+        return 0;
+    }
+
+    // ----------------------------------------------------------------------------
+    /// @dev Commit Tokens
+    // ----------------------------------------------------------------------------
+
+    /// @dev Commit pre approved ERC20 tokens
     function commitTokens (uint256 _amount) public {
         commitTokensFrom(msg.sender, _amount);
     }
 
-    /// @dev Users must approve contract prior to committing tokens
+    /// @dev User must approve contract to spend prior to committing tokens
     function commitTokensFrom (address _from, uint256 _amount) public {
         lastContributor = _from;
         require(now <= expiryTime, "Game has ended");
@@ -49,10 +70,9 @@ contract TimesSquare {
         emit NewLeader(_from,_amount,expiryTime);
     }
 
-    function prizeValue() public view returns (uint256) {
-        uint256 amount = paymentCurrency.balanceOf(address(this));
-        return amount * 90 / 100;
-    }
+    // ----------------------------------------------------------------------------
+    /// @dev Claim Prize
+    // ----------------------------------------------------------------------------
 
     /// @dev Commit approved ERC20 tokens to buy tokens on sale
     function claimPrize() public {
@@ -61,13 +81,6 @@ contract TimesSquare {
         require(paymentCurrency.transfer(address(uint160(developer)), amount * 5 / 100));
         require(paymentCurrency.transfer(address(uint160(lastContributor)), amount * 90 / 100));
         startGame();
-    }
-
-    function timeRemaining() public view returns (uint256) {
-        if (now <= expiryTime) {
-            return expiryTime - now;
-        }
-        return 0;
     }
 
 }

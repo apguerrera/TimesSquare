@@ -42,6 +42,7 @@ If you are the last person and your address is the winner, simply withdraw the w
 
 Install PipX
 `python3 -m pip install --user pipx`
+
 `python3 -m pipx ensurepath`
 
 Install using PipX
