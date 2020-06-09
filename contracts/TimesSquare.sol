@@ -10,14 +10,17 @@ interface IERC20 {
 
 contract TimesSquare {
 
-    uint public constant INITIALEXPIRYBLOCKS = 10000;
-    uint public constant BUMP = 10;
+    uint public constant INITIAL_BUMP = 100000;
+    uint public constant BUMP = 100;
 
     IERC20 public paymentCurrency;
     address public developer;
     address public lastContributor;
-    uint public expiryBlock;
+    uint public expiryTime;
     uint public minimumAmount = 0.1 ether;
+
+    event NewGame(uint256 start);
+    event NewLeader(address leader, uint256 amount, uint256 expiryTime);
 
     constructor (IERC20 _paymentCurrency) public {
         developer = msg.sender;
@@ -26,7 +29,8 @@ contract TimesSquare {
     }
 
     function startGame() internal {
-        expiryBlock = block.number + INITIALEXPIRYBLOCKS;
+        expiryTime = now + INITIAL_BUMP;
+        emit NewGame(now);
     }
 
     /// @dev Commit approved ERC20 token
@@ -37,30 +41,31 @@ contract TimesSquare {
     /// @dev Users must approve contract prior to committing tokens
     function commitTokensFrom (address _from, uint256 _amount) public {
         lastContributor = _from;
-        require(block.number <= expiryBlock, "Game has ended");
+        require(now <= expiryTime, "Game has ended");
         require(_amount> minimumAmount, "Not enough tokens");
         require(paymentCurrency.transferFrom(_from, address(this), _amount), "Token payment failed");
         minimumAmount = _amount * 110 / 100;
-        expiryBlock += BUMP;
+        expiryTime += BUMP;
+        emit NewLeader(_from,_amount,expiryTime);
     }
 
-    function prizeValue() public returns (uint256) {
+    function prizeValue() public view returns (uint256) {
         uint256 amount = paymentCurrency.balanceOf(address(this));
         return amount * 90 / 100;
     }
 
     /// @dev Commit approved ERC20 tokens to buy tokens on sale
     function claimPrize() public {
-        require(block.number > expiryBlock, "Game has not yet ended");
+        require(now > expiryTime, "Game has not yet ended");
         uint256 amount = paymentCurrency.balanceOf(address(this));
         require(paymentCurrency.transfer(address(uint160(developer)), amount * 5 / 100));
         require(paymentCurrency.transfer(address(uint160(lastContributor)), amount * 90 / 100));
         startGame();
     }
 
-    function blocksRemaining() public view returns (uint256) {
-        if (block.number <= expiryBlock) {
-            return expiryBlock - block.number;
+    function timeRemaining() public view returns (uint256) {
+        if (now <= expiryTime) {
+            return expiryTime - now;
         }
         return 0;
     }
