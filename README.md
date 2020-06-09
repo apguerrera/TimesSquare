@@ -30,8 +30,7 @@ If you are the last person to contribute before the contract ends, you win.
 If you are the last person and your address is the winner, simply withdraw the winning tokens. 
 
 
-
-
+------------------------------
 
 
 ## Smart Contracts (Developers) 
